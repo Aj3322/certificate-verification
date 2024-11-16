@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                    Certificate Verification
+                </h1>
+                <p class="text-lg text-gray-600" id="certificateDetails">
+                    Loading certificate details...
+                </p>
+            </div>
+
+            <div id="certificateCard" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+                <div class="mb-6">
+                    <div class="flex items-center justify-center mb-4">
+                        <span class="px-4 py-2 rounded-full bg-green-100 text-green-800">
+                            ✓ Valid Certificate
+                        </span>
+                    </div>
+                    <div id="certInfo" class="space-y-2">
+                    </div>
+                </div>
+                <div class="mb-8">
+                    <img id="certificateImage" src="" alt="Certificate" class="w-full rounded-lg shadow-sm">
+                </div>
+            </div>
+
+            <div id="errorCard" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative hidden" role="alert">
+                <strong class="font-bold">Invalid Certificate!</strong>
+                <span class="block sm:inline"> This certificate ID could not be verified.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function verifyCertificate() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const certId = urlParams.get('id');
+            
+            if (!certId) {
+                document.getElementById('certificateDetails').textContent = 'No certificate ID provided';
+                document.getElementById('errorCard').classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('certificates.json');
+                const data = await response.json();
+                const certificate = data.certificates[certId];
+
+                if (certificate && certificate.status === 'valid') {
+                    document.getElementById('certificateCard').classList.remove('hidden');
+                    document.getElementById('certificateDetails').textContent = 
+                        `Certificate ID: ${certId}`;
+                    document.getElementById('certificateImage').src = certificate.imageUrl;
+                    
+                    const certInfo = document.getElementById('certInfo');
+                    certInfo.innerHTML = `
+                        <p class="text-gray-600"><strong>Name:</strong> ${certificate.name}</p>
+                        <p class="text-gray-600"><strong>Course:</strong> ${certificate.course}</p>
+                        <p class="text-gray-600"><strong>Issue Date:</strong> ${certificate.issueDate}</p>
+                        <p class="text-gray-600"><strong>Issuing Organization:</strong> ${certificate.issuingOrganization}</p>
+                    `;
+                } else {
+                    throw new Error('Certificate not found');
+                }
+            } catch (error) {
+                document.getElementById('errorCard').classList.remove('hidden');
+                document.getElementById('certificateDetails').textContent = 'Certificate verification failed';
+            }
+        }
+
+        // Run verification on page load
+        verifyCertificate();
+    </script>
+</body>
+</html>s
